@@ -5,6 +5,10 @@
 #include <signal.h>
 #include <Eventloop.h>
 
+/*
+** each client which wants to use timer must inherit a class form TimerTask 
+** and implement runTimerTask() method
+*/
 class TimerTask
 {
     public:
@@ -21,6 +25,11 @@ class Timer
     long long startTime;
     sig_atomic_t stopFlag;
     Event *timerEvent;
+
+    /*
+    ** TimerEvent inherit form Event class and implement check interface
+    ** Check interface execute timer handle() method
+    */
 
     class TimerEvent : public Event 
     {

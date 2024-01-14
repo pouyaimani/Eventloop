@@ -5,6 +5,7 @@ std::list<Event *> Eventloop::eventList;
 pthread_mutex_t Eventloop::mutex;
 Eventloop * Eventloop::eventloop = NULL;
 
+/* Event thread to concurently check new events with other threads */
 void *checkEvents(void *args)
 {
     while (1) {
@@ -17,6 +18,7 @@ void *checkEvents(void *args)
     }
 }
 
+/* Event loop constructor to create and detach the event thread */
 Eventloop::Eventloop()
 {
     pthread_create(&Eventloop::loopThread, NULL, &checkEvents, NULL);
@@ -29,6 +31,9 @@ void Eventloop::init()
     getInstance();
 }
 
+/* Instantiate the event loop.
+** Event loop use singleton design pattern to ensure just only one object is instantiated
+ */
 Eventloop *Eventloop::getInstance()
 {
     if(eventloop == NULL)
@@ -36,6 +41,7 @@ Eventloop *Eventloop::getInstance()
     return eventloop;
 }
 
+/* append() method to append events */
 EventloopErr_t Eventloop::append(Event *event)
 {
     pthread_mutex_lock(&mutex);
@@ -50,6 +56,7 @@ EventloopErr_t Eventloop::append(Event *event)
     pthread_mutex_unlock(&mutex);
 }
 
+/* remove() method to append events */
 void Eventloop::remove(Event *event)
 {
     pthread_mutex_lock(&mutex);

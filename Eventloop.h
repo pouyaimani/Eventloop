@@ -10,6 +10,7 @@ typedef enum {
     EVL_ERR_EVENT_NOT_EXISTS
 } EventloopErr_t;
 
+/* Every event which wants to use event loop must inherit event class and implement check interface */
 class Event 
 {
     public:

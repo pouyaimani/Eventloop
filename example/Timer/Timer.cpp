@@ -1,6 +1,10 @@
 #include "Timer.h"
 #include <sys/time.h>
 
+/* 
+** Timer constructor create a instantiate a TimerEvent class which inherit Event class 
+** then append it to event loop as an event 
+*/
 Timer::Timer(TimerTask *_timerTask)
 {
     timerEvent = new TimerEvent(this);
@@ -9,6 +13,9 @@ Timer::Timer(TimerTask *_timerTask)
     stopFlag = false;
 }
 
+/* 
+** Timer destructor remove timer event from event loop
+*/
 Timer::~Timer()
 {
     pthread_mutex_lock(&mutex);
@@ -37,6 +44,9 @@ long long Timer::getTimeMs()
     return tp.tv_sec * 1000 + tp.tv_usec / 1000;
 }
 
+/* 
+** Handle method continuously check timer objects time out
+*/
 void Timer::handle()
 {
     pthread_mutex_lock(&mutex);
