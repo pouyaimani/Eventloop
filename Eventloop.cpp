@@ -10,6 +10,11 @@ void *checkEvents(void *args)
 {
     while (1) {
         std::list<Event *>::iterator it;
+        /* If event list is empty release control of processor 
+        ** The thread is moved to the end of the queue
+        */
+        if (Eventloop::eventList.empty())
+            sched_yield();
         for(it = Eventloop::eventList.begin() ; it != Eventloop::eventList.end() ; it++) {
             pthread_mutex_lock(&(*it)->mutex);
             (*it)->check();
