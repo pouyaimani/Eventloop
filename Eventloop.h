@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <list>
+#include <iostream>
 
 typedef enum {
     EVL_ERR_OK = 0,
@@ -35,8 +36,8 @@ class Eventloop
     static pthread_mutex_t mutex;
     static void init();
     static Eventloop *getInstance();
-    static EventloopErr_t append(Event *event);
-    static void remove(Event *event);
+    static EventloopErr_t append(Event **event);
+    static void remove(Event **event);
 
     static std::list<Event *> eventList;
 

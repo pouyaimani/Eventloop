@@ -27,7 +27,7 @@ class Timer
     Event *timerEvent;
 
     /*
-    ** TimerEvent inherit form Event class and implement check interface
+    ** TimerEvent inherits form Event class and implement check interface
     ** Check interface execute timer handle() method
     */
 
@@ -39,6 +39,9 @@ class Timer
         public:
         TimerEvent(Timer *t) {
             timer = t;
+        }
+        ~TimerEvent() {
+            std::cout << "timer event destructor \n";
         }
         void check() {
             timer->handle();

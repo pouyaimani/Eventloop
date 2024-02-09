@@ -13,13 +13,17 @@ void *checkEvents(void *args)
         /* If event list is empty release control of processor 
         ** The thread is moved to the end of the queue
         */
-        if (Eventloop::eventList.empty())
+       pthread_mutex_lock(&Eventloop::mutex);
+        if (Eventloop::eventList.empty()) {
+            pthread_mutex_unlock(&Eventloop::mutex);
             sched_yield();
-        for(it = Eventloop::eventList.begin() ; it != Eventloop::eventList.end() ; it++) {
-            pthread_mutex_lock(&(*it)->mutex);
-            (*it)->check();
-            pthread_mutex_unlock(&(*it)->mutex);
         }
+        else {
+            for(it = Eventloop::eventList.begin() ; it != Eventloop::eventList.end() ; it++) {
+                (*it)->check();
+            }
+        }
+        pthread_mutex_unlock(&Eventloop::mutex);
     }
 }
 
@@ -32,7 +36,11 @@ Eventloop::Eventloop()
 
 void Eventloop::init()
 {
-    pthread_mutex_init(&mutex, NULL);
+    if (pthread_mutex_init(&mutex, NULL) == 0) {
+        std::cout << "Eventloop mutex init succeed. \n";
+    } else {
+        std::cout << "Eventloop mutex init failed. \n";
+    }
     getInstance();
 }
 
@@ -47,28 +55,36 @@ Eventloop *Eventloop::getInstance()
 }
 
 /* append() method to append events */
-EventloopErr_t Eventloop::append(Event *event)
+EventloopErr_t Eventloop::append(Event **event)
 {
     pthread_mutex_lock(&mutex);
     std::list<Event *>::iterator it;
     for(it = eventList.begin() ; it != eventList.end() ; it++) {
-        if((*it) == event) {
+        if((*it) == *event) {
             pthread_mutex_unlock(&mutex);
             return EVL_ERR_EVENT_EXISTS;
         }
     }
-    eventList.push_back(event);
+    eventList.push_back(*event);
     pthread_mutex_unlock(&mutex);
+    return EVL_ERR_OK;
 }
 
-/* remove() method to append events */
-void Eventloop::remove(Event *event)
+/* remove() method to remove events */
+void Eventloop::remove(Event **event)
 {
     pthread_mutex_lock(&mutex);
     std::list<Event *>::iterator it;
+    Event *ev = NULL;
     for(it = eventList.begin() ; it != eventList.end() ; it++) {
-        if((*it) == event)
-        eventList.remove(event);
+        std::cout << "event = " << (*it) << "\n";
+        if((*it) == *event) {
+            ev = *it;
+        }
+    }
+    if(ev != NULL) {
+        eventList.remove(ev);
+
     }
     pthread_mutex_unlock(&mutex);
 }

@@ -1,5 +1,6 @@
 #include "Timer.h"
 #include <sys/time.h>
+#include <iostream>
 
 /* 
 ** Timer constructor create a instantiate a TimerEvent class which inherit Event class 
@@ -8,7 +9,7 @@
 Timer::Timer(TimerTask *_timerTask)
 {
     timerEvent = new TimerEvent(this);
-    Eventloop::append(timerEvent);
+    Eventloop::append(&timerEvent);
     timerTask = _timerTask;
     stopFlag = false;
 }
@@ -19,7 +20,7 @@ Timer::Timer(TimerTask *_timerTask)
 Timer::~Timer()
 {
     pthread_mutex_lock(&mutex);
-    Eventloop::remove(timerEvent);
+    Eventloop::remove(&timerEvent);
     pthread_mutex_lock(&mutex);
 }
 
