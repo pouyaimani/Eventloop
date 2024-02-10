@@ -28,6 +28,8 @@ class Eventloop
     private:
     static pthread_t loopThread;
     static Eventloop *eventloop;
+    static pthread_mutex_t suspendMutex;
+    static pthread_cond_t suspendCond;
 
     protected:
     Eventloop();
@@ -38,6 +40,9 @@ class Eventloop
     static Eventloop *getInstance();
     static EventloopErr_t append(Event **event);
     static void remove(Event **event);
+
+    static void suspendThread();
+    static void resumeThread();
 
     static std::list<Event *> eventList;
 
