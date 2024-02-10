@@ -1,9 +1,12 @@
 #include "Eventloop.h"
+#include <iostream>
 
 pthread_t Eventloop::loopThread;
 std::list<Event *> Eventloop::eventList;
 pthread_mutex_t Eventloop::mutex;
 Eventloop * Eventloop::eventloop = NULL;
+pthread_mutex_t Eventloop::suspendMutex;
+pthread_cond_t Eventloop::suspendCond;
 
 /* Event thread to concurently check new events with other threads */
 void *checkEvents(void *args)
@@ -15,8 +18,7 @@ void *checkEvents(void *args)
         */
        pthread_mutex_lock(&Eventloop::mutex);
         if (Eventloop::eventList.empty()) {
-            pthread_mutex_unlock(&Eventloop::mutex);
-            sched_yield();
+            Eventloop::suspendThread();
         }
         else {
             for(it = Eventloop::eventList.begin() ; it != Eventloop::eventList.end() ; it++) {
@@ -41,6 +43,7 @@ void Eventloop::init()
     } else {
         std::cout << "Eventloop mutex init failed. \n";
     }
+    pthread_cond_init(&suspendCond, NULL);
     getInstance();
 }
 
@@ -65,6 +68,8 @@ EventloopErr_t Eventloop::append(Event **event)
             return EVL_ERR_EVENT_EXISTS;
         }
     }
+    if (eventList.empty())
+        resumeThread();
     eventList.push_back(*event);
     pthread_mutex_unlock(&mutex);
     return EVL_ERR_OK;
@@ -87,4 +92,19 @@ void Eventloop::remove(Event **event)
 
     }
     pthread_mutex_unlock(&mutex);
+}
+
+/* remove() method to append events */
+void Eventloop::suspendThread()
+{
+    pthread_mutex_lock(&suspendMutex);
+    pthread_cond_wait(&suspendCond, &suspendMutex);
+}
+
+/* remove() method to append events */
+void Eventloop::resumeThread()
+{
+    pthread_mutex_lock(&suspendMutex);
+    pthread_cond_signal(&suspendCond);
+    pthread_mutex_unlock(&suspendMutex);
 }
